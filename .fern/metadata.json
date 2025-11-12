@@ -1,0 +1,9 @@
+{
+  "cliVersion": "0.112.1",
+  "generatorName": "fernapi/fern-java-sdk",
+  "generatorVersion": "3.14.8",
+  "generatorConfig": {
+    "client-class-name": "Cohere",
+    "enable-wire-tests": true
+  }
+}
