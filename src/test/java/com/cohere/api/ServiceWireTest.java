@@ -1,9 +1,11 @@
 package com.cohere.api;
 
 import com.cohere.api.core.ObjectMappers;
+import com.cohere.api.requests.ChatRequest;
 import com.cohere.api.requests.ChatStreamRequest;
 import com.cohere.api.requests.DetokenizeRequest;
 import com.cohere.api.requests.EmbedRequest;
+import com.cohere.api.requests.GenerateRequest;
 import com.cohere.api.requests.GenerateStreamRequest;
 import com.cohere.api.requests.RerankRequest;
 import com.cohere.api.requests.SummarizeRequest;
@@ -12,10 +14,12 @@ import com.cohere.api.types.CheckApiKeyResponse;
 import com.cohere.api.types.DetokenizeResponse;
 import com.cohere.api.types.EmbedInputType;
 import com.cohere.api.types.EmbedResponse;
+import com.cohere.api.types.GenerateStreamedResponse;
 import com.cohere.api.types.Generation;
 import com.cohere.api.types.NonStreamedChatResponse;
 import com.cohere.api.types.RerankRequestDocumentsItem;
 import com.cohere.api.types.RerankResponse;
+import com.cohere.api.types.StreamedChatResponse;
 import com.cohere.api.types.SummarizeResponse;
 import com.cohere.api.types.TokenizeResponse;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -51,13 +55,66 @@ public class ServiceWireTest {
     }
 
     @Test
+    public void testChatStream() throws Exception {
+        server.enqueue(new MockResponse().setResponseCode(200).setBody("{}"));
+        Optional<StreamedChatResponse> response = client.chatStream(ChatStreamRequest.builder()
+                .message("hello!")
+                .model("command-a-03-2025")
+                .build());
+        RecordedRequest request = server.takeRequest();
+        Assertions.assertNotNull(request);
+        Assertions.assertEquals("POST", request.getMethod());
+        // Validate request body
+        String actualRequestBody = request.getBody().readUtf8();
+        String expectedRequestBody = ""
+                + "{\n"
+                + "  \"model\": \"command-a-03-2025\",\n"
+                + "  \"message\": \"hello!\",\n"
+                + "  \"stream\": true\n"
+                + "}";
+        JsonNode actualJson = objectMapper.readTree(actualRequestBody);
+        JsonNode expectedJson = objectMapper.readTree(expectedRequestBody);
+        Assertions.assertTrue(jsonEquals(expectedJson, actualJson), "Request body structure does not match expected");
+        if (actualJson.has("type") || actualJson.has("_type") || actualJson.has("kind")) {
+            String discriminator = null;
+            if (actualJson.has("type")) discriminator = actualJson.get("type").asText();
+            else if (actualJson.has("_type"))
+                discriminator = actualJson.get("_type").asText();
+            else if (actualJson.has("kind"))
+                discriminator = actualJson.get("kind").asText();
+            Assertions.assertNotNull(discriminator, "Union type should have a discriminator field");
+            Assertions.assertFalse(discriminator.isEmpty(), "Union discriminator should not be empty");
+        }
+
+        if (!actualJson.isNull()) {
+            Assertions.assertTrue(
+                    actualJson.isObject() || actualJson.isArray() || actualJson.isValueNode(),
+                    "request should be a valid JSON value");
+        }
+
+        if (actualJson.isArray()) {
+            Assertions.assertTrue(actualJson.size() >= 0, "Array should have valid size");
+        }
+        if (actualJson.isObject()) {
+            Assertions.assertTrue(actualJson.size() >= 0, "Object should have valid field count");
+        }
+
+        // Validate response deserialization
+        Assertions.assertNotNull(response, "Response should not be null");
+        // Verify the response can be serialized back to JSON
+        String responseJson = objectMapper.writeValueAsString(response);
+        Assertions.assertNotNull(responseJson);
+        Assertions.assertFalse(responseJson.isEmpty());
+    }
+
+    @Test
     public void testChat() throws Exception {
         server.enqueue(
                 new MockResponse()
                         .setResponseCode(200)
                         .setBody(
                                 "{\"text\":\"Large Language Models (LLMs) are advanced AI systems trained on vast amounts of text data to understand and generate human-like text. They use deep learning architectures, particularly transformers, to process and produce language.\\n\\nKey characteristics of LLMs include:\\n\\n1. **Scale**: They're trained on billions or trillions of parameters, making them capable of understanding complex patterns in language.\\n\\n2. **Versatility**: LLMs can perform various tasks like translation, summarization, question answering, and creative writing without being explicitly programmed for each task.\\n\\n3. **Context Understanding**: They can maintain context over long conversations and generate coherent, contextually relevant responses.\\n\\n4. **Few-shot Learning**: LLMs can often perform new tasks with just a few examples, adapting to new scenarios quickly.\\n\\nPopular examples include GPT (Generative Pre-trained Transformer) models, BERT, and Cohere's Command models. These models have revolutionized natural language processing and enabled new applications across industries.\",\"generation_id\":\"f47ac10b-58cc-4372-a567-0e02b2c3d479\",\"chat_history\":[{\"role\":\"USER\",\"message\":\"Tell me about LLMs\"},{\"role\":\"CHATBOT\",\"message\":\"Large Language Models (LLMs) are advanced AI systems trained on vast amounts of text data to understand and generate human-like text. They use deep learning architectures, particularly transformers, to process and produce language.\\n\\nKey characteristics of LLMs include:\\n\\n1. **Scale**: They're trained on billions or trillions of parameters, making them capable of understanding complex patterns in language.\\n\\n2. **Versatility**: LLMs can perform various tasks like translation, summarization, question answering, and creative writing without being explicitly programmed for each task.\\n\\n3. **Context Understanding**: They can maintain context over long conversations and generate coherent, contextually relevant responses.\\n\\n4. **Few-shot Learning**: LLMs can often perform new tasks with just a few examples, adapting to new scenarios quickly.\\n\\nPopular examples include GPT (Generative Pre-trained Transformer) models, BERT, and Cohere's Command models. These models have revolutionized natural language processing and enabled new applications across industries.\"}],\"finish_reason\":\"COMPLETE\",\"meta\":{\"api_version\":{\"version\":\"1\"},\"billed_units\":{\"input_tokens\":5,\"output_tokens\":198},\"tokens\":{\"input_tokens\":71,\"output_tokens\":198}}}"));
-        NonStreamedChatResponse response = client.chatStream(ChatStreamRequest.builder()
+        NonStreamedChatResponse response = client.chat(ChatRequest.builder()
                 .message("Tell me about LLMs")
                 .model("command-a-03-2025")
                 .build());
@@ -163,13 +220,61 @@ public class ServiceWireTest {
     }
 
     @Test
+    public void testGenerateStream() throws Exception {
+        server.enqueue(new MockResponse().setResponseCode(200).setBody("{}"));
+        Optional<GenerateStreamedResponse> response = client.generateStream(GenerateStreamRequest.builder()
+                .prompt("Please explain to me how LLMs work")
+                .build());
+        RecordedRequest request = server.takeRequest();
+        Assertions.assertNotNull(request);
+        Assertions.assertEquals("POST", request.getMethod());
+        // Validate request body
+        String actualRequestBody = request.getBody().readUtf8();
+        String expectedRequestBody =
+                "" + "{\n" + "  \"prompt\": \"Please explain to me how LLMs work\",\n" + "  \"stream\": true\n" + "}";
+        JsonNode actualJson = objectMapper.readTree(actualRequestBody);
+        JsonNode expectedJson = objectMapper.readTree(expectedRequestBody);
+        Assertions.assertTrue(jsonEquals(expectedJson, actualJson), "Request body structure does not match expected");
+        if (actualJson.has("type") || actualJson.has("_type") || actualJson.has("kind")) {
+            String discriminator = null;
+            if (actualJson.has("type")) discriminator = actualJson.get("type").asText();
+            else if (actualJson.has("_type"))
+                discriminator = actualJson.get("_type").asText();
+            else if (actualJson.has("kind"))
+                discriminator = actualJson.get("kind").asText();
+            Assertions.assertNotNull(discriminator, "Union type should have a discriminator field");
+            Assertions.assertFalse(discriminator.isEmpty(), "Union discriminator should not be empty");
+        }
+
+        if (!actualJson.isNull()) {
+            Assertions.assertTrue(
+                    actualJson.isObject() || actualJson.isArray() || actualJson.isValueNode(),
+                    "request should be a valid JSON value");
+        }
+
+        if (actualJson.isArray()) {
+            Assertions.assertTrue(actualJson.size() >= 0, "Array should have valid size");
+        }
+        if (actualJson.isObject()) {
+            Assertions.assertTrue(actualJson.size() >= 0, "Object should have valid field count");
+        }
+
+        // Validate response deserialization
+        Assertions.assertNotNull(response, "Response should not be null");
+        // Verify the response can be serialized back to JSON
+        String responseJson = objectMapper.writeValueAsString(response);
+        Assertions.assertNotNull(responseJson);
+        Assertions.assertFalse(responseJson.isEmpty());
+    }
+
+    @Test
     public void testGenerate() throws Exception {
         server.enqueue(
                 new MockResponse()
                         .setResponseCode(200)
                         .setBody(
                                 "{\"id\":\"6afae9c2-3375-4d0e-8d18-2e9eb7f2c3ec\",\"generations\":[{\"id\":\"8e6de35d-3007-43ab-9253-ac4f95dcb8a2\",\"text\":\"LLMs, or Large Language Models, are a type of neural network-based AI model that has been trained on massive amounts of text data and have become ubiquitous in the AI landscape. They possess astounding capabilities for comprehending and generating human-like language.\\nThese models leverage neural networks that operate on a large scale, often involving millions or even billions of parameters. This substantial scale enables them to capture intricate patterns and connections within the vast amounts of text they have been trained on.\\n\\nThe training process for LLMs is fueled by colossal datasets of textual information, ranging from books and articles to websites and conversational transcripts. This extensive training enables them to develop a nuanced understanding of language patterns, grammar, and semantics.\\n\\nWhen posed with a new text input, LLMs employ their finely honed understanding of language to generate informed responses or undertake tasks such as language translation, text completion, or question answering. They do this by manipulating the input text through adding, removing, or altering elements to craft a desired output.\\n\\nOne of the underlying principles of their efficacy is the recurrent neural network (RNN) architecture they often adopt. This design enables them to process sequential data like natural language effectively. RNNs possess \\\"memory\\\" aspects via loops between layers, which allows them to retain and manipulate information gathered across long sequences, akin to the way humans process information.\\n\\nHowever, it's their size that arguably constitutes their most notable aspect. The sheer volume of these models – with counts of parameters often exceeding 100 million – enables them to capture correlations and patterns within language data effectively. This empowers them to generate coherent and contextually appropriate responses, posing a remarkable advancement in conversational AI.\\n\\nWhile LLMs have demonstrated extraordinary language prowess, it's vital to acknowledge their limitations and potential for improvement. Their biases often reflect those of the training data, and they may struggle with logical inconsistencies or factual errors. Ongoing research aims to enhance their robustness, diversity, and overall usability.\\n\\nIn essence, LLMs are a groundbreaking manifestation of AI's potential to simulate and even extend human language capabilities, while also serving as a testament to the ongoing journey towards refining and perfecting these technologies.\"}],\"prompt\":\"Please explain to me how LLMs work\",\"meta\":{\"api_version\":{\"version\":\"1\"},\"billed_units\":{\"input_tokens\":8,\"output_tokens\":442}}}"));
-        Generation response = client.generateStream(GenerateStreamRequest.builder()
+        Generation response = client.generate(GenerateRequest.builder()
                 .prompt("Please explain to me how LLMs work")
                 .build());
         RecordedRequest request = server.takeRequest();

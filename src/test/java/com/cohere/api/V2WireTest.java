@@ -5,6 +5,7 @@ import com.cohere.api.resources.v2.requests.V2ChatStreamRequest;
 import com.cohere.api.resources.v2.requests.V2EmbedRequest;
 import com.cohere.api.resources.v2.requests.V2RerankRequest;
 import com.cohere.api.resources.v2.types.V2ChatResponse;
+import com.cohere.api.resources.v2.types.V2ChatStreamResponse;
 import com.cohere.api.resources.v2.types.V2RerankResponse;
 import com.cohere.api.types.ChatMessageV2;
 import com.cohere.api.types.EmbedByTypeResponse;
@@ -45,6 +46,67 @@ public class V2WireTest {
     }
 
     @Test
+    public void testChatStream() throws Exception {
+        server.enqueue(new MockResponse().setResponseCode(200).setBody("{}"));
+        Optional<V2ChatStreamResponse> response = client.v2()
+                .chatStream(V2ChatStreamRequest.builder()
+                        .model("command-a-03-2025")
+                        .messages(Arrays.asList(ChatMessageV2.user(UserMessageV2.builder()
+                                .content(UserMessageV2Content.of("Tell me about LLMs"))
+                                .build())))
+                        .build());
+        RecordedRequest request = server.takeRequest();
+        Assertions.assertNotNull(request);
+        Assertions.assertEquals("POST", request.getMethod());
+        // Validate request body
+        String actualRequestBody = request.getBody().readUtf8();
+        String expectedRequestBody = ""
+                + "{\n"
+                + "  \"model\": \"command-a-03-2025\",\n"
+                + "  \"messages\": [\n"
+                + "    {\n"
+                + "      \"role\": \"user\",\n"
+                + "      \"content\": \"Tell me about LLMs\"\n"
+                + "    }\n"
+                + "  ],\n"
+                + "  \"stream\": true\n"
+                + "}";
+        JsonNode actualJson = objectMapper.readTree(actualRequestBody);
+        JsonNode expectedJson = objectMapper.readTree(expectedRequestBody);
+        Assertions.assertTrue(jsonEquals(expectedJson, actualJson), "Request body structure does not match expected");
+        if (actualJson.has("type") || actualJson.has("_type") || actualJson.has("kind")) {
+            String discriminator = null;
+            if (actualJson.has("type")) discriminator = actualJson.get("type").asText();
+            else if (actualJson.has("_type"))
+                discriminator = actualJson.get("_type").asText();
+            else if (actualJson.has("kind"))
+                discriminator = actualJson.get("kind").asText();
+            Assertions.assertNotNull(discriminator, "Union type should have a discriminator field");
+            Assertions.assertFalse(discriminator.isEmpty(), "Union discriminator should not be empty");
+        }
+
+        if (!actualJson.isNull()) {
+            Assertions.assertTrue(
+                    actualJson.isObject() || actualJson.isArray() || actualJson.isValueNode(),
+                    "request should be a valid JSON value");
+        }
+
+        if (actualJson.isArray()) {
+            Assertions.assertTrue(actualJson.size() >= 0, "Array should have valid size");
+        }
+        if (actualJson.isObject()) {
+            Assertions.assertTrue(actualJson.size() >= 0, "Object should have valid field count");
+        }
+
+        // Validate response deserialization
+        Assertions.assertNotNull(response, "Response should not be null");
+        // Verify the response can be serialized back to JSON
+        String responseJson = objectMapper.writeValueAsString(response);
+        Assertions.assertNotNull(responseJson);
+        Assertions.assertFalse(responseJson.isEmpty());
+    }
+
+    @Test
     public void testChat() throws Exception {
         server.enqueue(
                 new MockResponse()
@@ -52,7 +114,7 @@ public class V2WireTest {
                         .setBody(
                                 "{\"id\":\"c14c80c3-18eb-4519-9460-6c92edd8cfb4\",\"message\":{\"role\":\"assistant\",\"content\":[{\"type\":\"text\",\"text\":\"LLMs stand for Large Language Models, which are a type of neural network model specialized in processing and generating human language. They are designed to understand and respond to natural language input and have become increasingly popular and valuable in recent years.\\n\\nLLMs are trained on vast amounts of text data, enabling them to learn patterns, grammar, and semantic meanings present in the language. These models can then be used for various natural language processing tasks, such as text generation, summarization, question answering, machine translation, sentiment analysis, and even some aspects of natural language understanding.\\n\\nSome well-known examples of LLMs include:\\n\\n1. GPT-3 (Generative Pre-trained Transformer 3) — An open-source LLM developed by OpenAI, capable of generating human-like text and performing various language tasks.\\n\\n2. BERT (Bidirectional Encoder Representations from Transformers) — A Google-developed LLM that is particularly good at understanding contextual relationships in text, and is widely used for natural language understanding tasks like sentiment analysis and named entity recognition.\\n\\n3. T5 (Text-to-Text Transfer Transformer) — Also from Google, T5 is a flexible LLM that frames all language tasks as text-to-text problems, where the model learns to generate output text based on input text prompts.\\n\\n4. RoBERTa (Robustly Optimized BERT Approach) — A variant of BERT that uses additional training techniques to improve performance.\\n\\n5. DeBERTa (Decoding-enhanced BERT with disentangled attention) — Another variant of BERT that introduces a new attention mechanism.\\n\\nLLMs have become increasingly powerful and larger in scale, improving the accuracy and sophistication of language tasks. They are also being used as a foundation for developing various applications, including chatbots, content recommendation systems, language translation services, and more.\\nThe future of LLMs holds the potential for even more sophisticated language technologies, with ongoing research and development focused on enhancing their capabilities, improving efficiency, and exploring their applications in various domains.\"}]},\"finish_reason\":\"COMPLETE\",\"usage\":{\"billed_units\":{\"input_tokens\":5,\"output_tokens\":418},\"tokens\":{\"input_tokens\":71,\"output_tokens\":418}}}"));
         V2ChatResponse response = client.v2()
-                .chatStream(V2ChatStreamRequest.builder()
+                .chat(V2ChatStreamRequest.builder()
                         .model("command-a-03-2025")
                         .messages(Arrays.asList(ChatMessageV2.user(UserMessageV2.builder()
                                 .content(UserMessageV2Content.of("Tell me about LLMs"))
