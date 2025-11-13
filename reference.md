@@ -32,7 +32,6 @@ client.chatStream(
     ChatStreamRequest
         .builder()
         .message("hello!")
-        .stream(true)
         .model("command-a-03-2025")
         .build()
 );
@@ -488,7 +487,6 @@ client.chatStream(
     ChatStreamRequest
         .builder()
         .message("Tell me about LLMs")
-        .stream(false)
         .model("command-a-03-2025")
         .build()
 );
@@ -946,7 +944,6 @@ client.generateStream(
     GenerateStreamRequest
         .builder()
         .prompt("Please explain to me how LLMs work")
-        .stream(true)
         .build()
 );
 ```
@@ -1197,7 +1194,6 @@ client.generateStream(
     GenerateStreamRequest
         .builder()
         .prompt("Please explain to me how LLMs work")
-        .stream(false)
         .build()
 );
 ```
@@ -2156,7 +2152,6 @@ client.v2().chatStream(
     V2ChatStreamRequest
         .builder()
         .model("command-a-03-2025")
-        .stream(true)
         .messages(
             Arrays.asList(
                 ChatMessageV2.user(
@@ -2451,7 +2446,6 @@ client.v2().chatStream(
     V2ChatStreamRequest
         .builder()
         .model("command-a-03-2025")
-        .stream(false)
         .messages(
             Arrays.asList(
                 ChatMessageV2.user(
@@ -2916,8 +2910,8 @@ This endpoint takes in a query and a list of texts and produces an ordered array
 client.v2().rerank(
     V2RerankRequest
         .builder()
-        .query("What is the capital of the United States?")
         .model("rerank-v3.5")
+        .query("What is the capital of the United States?")
         .documents(
             Arrays.asList("Carson City is the capital city of the American state of Nevada.", "The Commonwealth of the Northern Mariana Islands is a group of islands in the Pacific Ocean. Its capital is Saipan.", "Capitalization or capitalisation in English grammar is the use of a capital letter at the start of a word. English usage varies from capitalization in other languages.", "Washington, D.C. (also known as simply Washington or D.C., and officially as the District of Columbia) is the capital of the United States. It is a federal district.", "Capital punishment has existed in the United States since beforethe United States was a country. As of 2017, capital punishment is legal in 30 of the 50 states.")
         )
