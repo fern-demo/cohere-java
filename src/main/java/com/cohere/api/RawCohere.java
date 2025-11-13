@@ -47,8 +47,6 @@ import com.cohere.api.types.SummarizeResponse;
 import com.cohere.api.types.TokenizeResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import okhttp3.Headers;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
@@ -82,85 +80,10 @@ public class RawCohere {
                 .newBuilder()
                 .addPathSegments("v1/chat")
                 .build();
-        Map<String, Object> properties = new HashMap<>();
-        properties.put("message", request.getMessage());
-        if (request.getModel().isPresent()) {
-            properties.put("model", request.getModel());
-        }
-        properties.put("stream", request.getStream());
-        if (request.getPreamble().isPresent()) {
-            properties.put("preamble", request.getPreamble());
-        }
-        if (request.getChatHistory().isPresent()) {
-            properties.put("chat_history", request.getChatHistory());
-        }
-        if (request.getConversationId().isPresent()) {
-            properties.put("conversation_id", request.getConversationId());
-        }
-        if (request.getPromptTruncation().isPresent()) {
-            properties.put("prompt_truncation", request.getPromptTruncation());
-        }
-        if (request.getConnectors().isPresent()) {
-            properties.put("connectors", request.getConnectors());
-        }
-        if (request.getSearchQueriesOnly().isPresent()) {
-            properties.put("search_queries_only", request.getSearchQueriesOnly());
-        }
-        if (request.getDocuments().isPresent()) {
-            properties.put("documents", request.getDocuments());
-        }
-        if (request.getCitationQuality().isPresent()) {
-            properties.put("citation_quality", request.getCitationQuality());
-        }
-        if (request.getTemperature().isPresent()) {
-            properties.put("temperature", request.getTemperature());
-        }
-        if (request.getMaxTokens().isPresent()) {
-            properties.put("max_tokens", request.getMaxTokens());
-        }
-        if (request.getMaxInputTokens().isPresent()) {
-            properties.put("max_input_tokens", request.getMaxInputTokens());
-        }
-        if (request.getK().isPresent()) {
-            properties.put("k", request.getK());
-        }
-        if (request.getP().isPresent()) {
-            properties.put("p", request.getP());
-        }
-        if (request.getSeed().isPresent()) {
-            properties.put("seed", request.getSeed());
-        }
-        if (request.getStopSequences().isPresent()) {
-            properties.put("stop_sequences", request.getStopSequences());
-        }
-        if (request.getFrequencyPenalty().isPresent()) {
-            properties.put("frequency_penalty", request.getFrequencyPenalty());
-        }
-        if (request.getPresencePenalty().isPresent()) {
-            properties.put("presence_penalty", request.getPresencePenalty());
-        }
-        if (request.getRawPrompting().isPresent()) {
-            properties.put("raw_prompting", request.getRawPrompting());
-        }
-        if (request.getTools().isPresent()) {
-            properties.put("tools", request.getTools());
-        }
-        if (request.getToolResults().isPresent()) {
-            properties.put("tool_results", request.getToolResults());
-        }
-        if (request.getForceSingleStep().isPresent()) {
-            properties.put("force_single_step", request.getForceSingleStep());
-        }
-        if (request.getResponseFormat().isPresent()) {
-            properties.put("response_format", request.getResponseFormat());
-        }
-        if (request.getSafetyMode().isPresent()) {
-            properties.put("safety_mode", request.getSafetyMode());
-        }
         RequestBody body;
         try {
             body = RequestBody.create(
-                    ObjectMappers.JSON_MAPPER.writeValueAsBytes(properties), MediaTypes.APPLICATION_JSON);
+                    ObjectMappers.JSON_MAPPER.writeValueAsBytes(request), MediaTypes.APPLICATION_JSON);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -171,7 +94,7 @@ public class RawCohere {
                 .addHeader("Content-Type", "application/json")
                 .addHeader("Accept", "application/json");
         if (request.getAccepts().isPresent()) {
-            _requestBuilder.addHeader("Accepts", request.getAccepts().get());
+            _requestBuilder.addHeader("accepts", request.getAccepts().get());
         }
         Request okhttpRequest = _requestBuilder.build();
         OkHttpClient client = clientOptions.httpClient();
@@ -228,11 +151,9 @@ public class RawCohere {
             } catch (JsonProcessingException ignored) {
                 // unable to map error response, throwing generic error
             }
+            Object errorBody = ObjectMappers.parseErrorBody(responseBodyString);
             throw new CohereApiException(
-                    "Error with status code " + response.code(),
-                    response.code(),
-                    ObjectMappers.JSON_MAPPER.readValue(responseBodyString, Object.class),
-                    response);
+                    "Error with status code " + response.code(), response.code(), errorBody, response);
         } catch (IOException e) {
             throw new CohereException("Network error executing HTTP request", e);
         }
@@ -255,85 +176,10 @@ public class RawCohere {
                 .newBuilder()
                 .addPathSegments("v1/chat")
                 .build();
-        Map<String, Object> properties = new HashMap<>();
-        properties.put("message", request.getMessage());
-        if (request.getModel().isPresent()) {
-            properties.put("model", request.getModel());
-        }
-        properties.put("stream", request.getStream());
-        if (request.getPreamble().isPresent()) {
-            properties.put("preamble", request.getPreamble());
-        }
-        if (request.getChatHistory().isPresent()) {
-            properties.put("chat_history", request.getChatHistory());
-        }
-        if (request.getConversationId().isPresent()) {
-            properties.put("conversation_id", request.getConversationId());
-        }
-        if (request.getPromptTruncation().isPresent()) {
-            properties.put("prompt_truncation", request.getPromptTruncation());
-        }
-        if (request.getConnectors().isPresent()) {
-            properties.put("connectors", request.getConnectors());
-        }
-        if (request.getSearchQueriesOnly().isPresent()) {
-            properties.put("search_queries_only", request.getSearchQueriesOnly());
-        }
-        if (request.getDocuments().isPresent()) {
-            properties.put("documents", request.getDocuments());
-        }
-        if (request.getCitationQuality().isPresent()) {
-            properties.put("citation_quality", request.getCitationQuality());
-        }
-        if (request.getTemperature().isPresent()) {
-            properties.put("temperature", request.getTemperature());
-        }
-        if (request.getMaxTokens().isPresent()) {
-            properties.put("max_tokens", request.getMaxTokens());
-        }
-        if (request.getMaxInputTokens().isPresent()) {
-            properties.put("max_input_tokens", request.getMaxInputTokens());
-        }
-        if (request.getK().isPresent()) {
-            properties.put("k", request.getK());
-        }
-        if (request.getP().isPresent()) {
-            properties.put("p", request.getP());
-        }
-        if (request.getSeed().isPresent()) {
-            properties.put("seed", request.getSeed());
-        }
-        if (request.getStopSequences().isPresent()) {
-            properties.put("stop_sequences", request.getStopSequences());
-        }
-        if (request.getFrequencyPenalty().isPresent()) {
-            properties.put("frequency_penalty", request.getFrequencyPenalty());
-        }
-        if (request.getPresencePenalty().isPresent()) {
-            properties.put("presence_penalty", request.getPresencePenalty());
-        }
-        if (request.getRawPrompting().isPresent()) {
-            properties.put("raw_prompting", request.getRawPrompting());
-        }
-        if (request.getTools().isPresent()) {
-            properties.put("tools", request.getTools());
-        }
-        if (request.getToolResults().isPresent()) {
-            properties.put("tool_results", request.getToolResults());
-        }
-        if (request.getForceSingleStep().isPresent()) {
-            properties.put("force_single_step", request.getForceSingleStep());
-        }
-        if (request.getResponseFormat().isPresent()) {
-            properties.put("response_format", request.getResponseFormat());
-        }
-        if (request.getSafetyMode().isPresent()) {
-            properties.put("safety_mode", request.getSafetyMode());
-        }
         RequestBody body;
         try {
             body = RequestBody.create(
-                    ObjectMappers.JSON_MAPPER.writeValueAsBytes(properties), MediaTypes.APPLICATION_JSON);
+                    ObjectMappers.JSON_MAPPER.writeValueAsBytes(request), MediaTypes.APPLICATION_JSON);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -344,7 +190,7 @@ public class RawCohere {
                 .addHeader("Content-Type", "application/json")
                 .addHeader("Accept", "application/json");
         if (request.getAccepts().isPresent()) {
-            _requestBuilder.addHeader("Accepts", request.getAccepts().get());
+            _requestBuilder.addHeader("accepts", request.getAccepts().get());
         }
         Request okhttpRequest = _requestBuilder.build();
         OkHttpClient client = clientOptions.httpClient();
@@ -353,12 +199,12 @@ public class RawCohere {
         }
         try (Response response = client.newCall(okhttpRequest).execute()) {
             ResponseBody responseBody = response.body();
+            String responseBodyString = responseBody != null ? responseBody.string() : "{}";
             if (response.isSuccessful()) {
                 return new CohereHttpResponse<>(
-                        ObjectMappers.JSON_MAPPER.readValue(responseBody.string(), NonStreamedChatResponse.class),
+                        ObjectMappers.JSON_MAPPER.readValue(responseBodyString, NonStreamedChatResponse.class),
                         response);
             }
-            String responseBodyString = responseBody != null ? responseBody.string() : "{}";
             try {
                 switch (response.code()) {
                     case 400:
@@ -401,11 +247,9 @@ public class RawCohere {
             } catch (JsonProcessingException ignored) {
                 // unable to map error response, throwing generic error
             }
+            Object errorBody = ObjectMappers.parseErrorBody(responseBodyString);
             throw new CohereApiException(
-                    "Error with status code " + response.code(),
-                    response.code(),
-                    ObjectMappers.JSON_MAPPER.readValue(responseBodyString, Object.class),
-                    response);
+                    "Error with status code " + response.code(), response.code(), errorBody, response);
         } catch (IOException e) {
             throw new CohereException("Network error executing HTTP request", e);
         }
@@ -502,11 +346,9 @@ public class RawCohere {
             } catch (JsonProcessingException ignored) {
                 // unable to map error response, throwing generic error
             }
+            Object errorBody = ObjectMappers.parseErrorBody(responseBodyString);
             throw new CohereApiException(
-                    "Error with status code " + response.code(),
-                    response.code(),
-                    ObjectMappers.JSON_MAPPER.readValue(responseBodyString, Object.class),
-                    response);
+                    "Error with status code " + response.code(), response.code(), errorBody, response);
         } catch (IOException e) {
             throw new CohereException("Network error executing HTTP request", e);
         }
@@ -553,11 +395,11 @@ public class RawCohere {
         }
         try (Response response = client.newCall(okhttpRequest).execute()) {
             ResponseBody responseBody = response.body();
+            String responseBodyString = responseBody != null ? responseBody.string() : "{}";
             if (response.isSuccessful()) {
                 return new CohereHttpResponse<>(
-                        ObjectMappers.JSON_MAPPER.readValue(responseBody.string(), Generation.class), response);
+                        ObjectMappers.JSON_MAPPER.readValue(responseBodyString, Generation.class), response);
             }
-            String responseBodyString = responseBody != null ? responseBody.string() : "{}";
             try {
                 switch (response.code()) {
                     case 400:
@@ -600,11 +442,9 @@ public class RawCohere {
             } catch (JsonProcessingException ignored) {
                 // unable to map error response, throwing generic error
             }
+            Object errorBody = ObjectMappers.parseErrorBody(responseBodyString);
             throw new CohereApiException(
-                    "Error with status code " + response.code(),
-                    response.code(),
-                    ObjectMappers.JSON_MAPPER.readValue(responseBodyString, Object.class),
-                    response);
+                    "Error with status code " + response.code(), response.code(), errorBody, response);
         } catch (IOException e) {
             throw new CohereException("Network error executing HTTP request", e);
         }
@@ -658,11 +498,11 @@ public class RawCohere {
         }
         try (Response response = client.newCall(okhttpRequest).execute()) {
             ResponseBody responseBody = response.body();
+            String responseBodyString = responseBody != null ? responseBody.string() : "{}";
             if (response.isSuccessful()) {
                 return new CohereHttpResponse<>(
-                        ObjectMappers.JSON_MAPPER.readValue(responseBody.string(), EmbedResponse.class), response);
+                        ObjectMappers.JSON_MAPPER.readValue(responseBodyString, EmbedResponse.class), response);
             }
-            String responseBodyString = responseBody != null ? responseBody.string() : "{}";
             try {
                 switch (response.code()) {
                     case 400:
@@ -705,11 +545,9 @@ public class RawCohere {
             } catch (JsonProcessingException ignored) {
                 // unable to map error response, throwing generic error
             }
+            Object errorBody = ObjectMappers.parseErrorBody(responseBodyString);
             throw new CohereApiException(
-                    "Error with status code " + response.code(),
-                    response.code(),
-                    ObjectMappers.JSON_MAPPER.readValue(responseBodyString, Object.class),
-                    response);
+                    "Error with status code " + response.code(), response.code(), errorBody, response);
         } catch (IOException e) {
             throw new CohereException("Network error executing HTTP request", e);
         }
@@ -750,11 +588,11 @@ public class RawCohere {
         }
         try (Response response = client.newCall(okhttpRequest).execute()) {
             ResponseBody responseBody = response.body();
+            String responseBodyString = responseBody != null ? responseBody.string() : "{}";
             if (response.isSuccessful()) {
                 return new CohereHttpResponse<>(
-                        ObjectMappers.JSON_MAPPER.readValue(responseBody.string(), RerankResponse.class), response);
+                        ObjectMappers.JSON_MAPPER.readValue(responseBodyString, RerankResponse.class), response);
             }
-            String responseBodyString = responseBody != null ? responseBody.string() : "{}";
             try {
                 switch (response.code()) {
                     case 400:
@@ -797,11 +635,9 @@ public class RawCohere {
             } catch (JsonProcessingException ignored) {
                 // unable to map error response, throwing generic error
             }
+            Object errorBody = ObjectMappers.parseErrorBody(responseBodyString);
             throw new CohereApiException(
-                    "Error with status code " + response.code(),
-                    response.code(),
-                    ObjectMappers.JSON_MAPPER.readValue(responseBodyString, Object.class),
-                    response);
+                    "Error with status code " + response.code(), response.code(), errorBody, response);
         } catch (IOException e) {
             throw new CohereException("Network error executing HTTP request", e);
         }
@@ -844,11 +680,11 @@ public class RawCohere {
         }
         try (Response response = client.newCall(okhttpRequest).execute()) {
             ResponseBody responseBody = response.body();
+            String responseBodyString = responseBody != null ? responseBody.string() : "{}";
             if (response.isSuccessful()) {
                 return new CohereHttpResponse<>(
-                        ObjectMappers.JSON_MAPPER.readValue(responseBody.string(), ClassifyResponse.class), response);
+                        ObjectMappers.JSON_MAPPER.readValue(responseBodyString, ClassifyResponse.class), response);
             }
-            String responseBodyString = responseBody != null ? responseBody.string() : "{}";
             try {
                 switch (response.code()) {
                     case 400:
@@ -891,11 +727,9 @@ public class RawCohere {
             } catch (JsonProcessingException ignored) {
                 // unable to map error response, throwing generic error
             }
+            Object errorBody = ObjectMappers.parseErrorBody(responseBodyString);
             throw new CohereApiException(
-                    "Error with status code " + response.code(),
-                    response.code(),
-                    ObjectMappers.JSON_MAPPER.readValue(responseBodyString, Object.class),
-                    response);
+                    "Error with status code " + response.code(), response.code(), errorBody, response);
         } catch (IOException e) {
             throw new CohereException("Network error executing HTTP request", e);
         }
@@ -942,11 +776,11 @@ public class RawCohere {
         }
         try (Response response = client.newCall(okhttpRequest).execute()) {
             ResponseBody responseBody = response.body();
+            String responseBodyString = responseBody != null ? responseBody.string() : "{}";
             if (response.isSuccessful()) {
                 return new CohereHttpResponse<>(
-                        ObjectMappers.JSON_MAPPER.readValue(responseBody.string(), SummarizeResponse.class), response);
+                        ObjectMappers.JSON_MAPPER.readValue(responseBodyString, SummarizeResponse.class), response);
             }
-            String responseBodyString = responseBody != null ? responseBody.string() : "{}";
             try {
                 switch (response.code()) {
                     case 400:
@@ -989,11 +823,9 @@ public class RawCohere {
             } catch (JsonProcessingException ignored) {
                 // unable to map error response, throwing generic error
             }
+            Object errorBody = ObjectMappers.parseErrorBody(responseBodyString);
             throw new CohereApiException(
-                    "Error with status code " + response.code(),
-                    response.code(),
-                    ObjectMappers.JSON_MAPPER.readValue(responseBodyString, Object.class),
-                    response);
+                    "Error with status code " + response.code(), response.code(), errorBody, response);
         } catch (IOException e) {
             throw new CohereException("Network error executing HTTP request", e);
         }
@@ -1034,11 +866,11 @@ public class RawCohere {
         }
         try (Response response = client.newCall(okhttpRequest).execute()) {
             ResponseBody responseBody = response.body();
+            String responseBodyString = responseBody != null ? responseBody.string() : "{}";
             if (response.isSuccessful()) {
                 return new CohereHttpResponse<>(
-                        ObjectMappers.JSON_MAPPER.readValue(responseBody.string(), TokenizeResponse.class), response);
+                        ObjectMappers.JSON_MAPPER.readValue(responseBodyString, TokenizeResponse.class), response);
             }
-            String responseBodyString = responseBody != null ? responseBody.string() : "{}";
             try {
                 switch (response.code()) {
                     case 400:
@@ -1081,11 +913,9 @@ public class RawCohere {
             } catch (JsonProcessingException ignored) {
                 // unable to map error response, throwing generic error
             }
+            Object errorBody = ObjectMappers.parseErrorBody(responseBodyString);
             throw new CohereApiException(
-                    "Error with status code " + response.code(),
-                    response.code(),
-                    ObjectMappers.JSON_MAPPER.readValue(responseBodyString, Object.class),
-                    response);
+                    "Error with status code " + response.code(), response.code(), errorBody, response);
         } catch (IOException e) {
             throw new CohereException("Network error executing HTTP request", e);
         }
@@ -1126,11 +956,11 @@ public class RawCohere {
         }
         try (Response response = client.newCall(okhttpRequest).execute()) {
             ResponseBody responseBody = response.body();
+            String responseBodyString = responseBody != null ? responseBody.string() : "{}";
             if (response.isSuccessful()) {
                 return new CohereHttpResponse<>(
-                        ObjectMappers.JSON_MAPPER.readValue(responseBody.string(), DetokenizeResponse.class), response);
+                        ObjectMappers.JSON_MAPPER.readValue(responseBodyString, DetokenizeResponse.class), response);
             }
-            String responseBodyString = responseBody != null ? responseBody.string() : "{}";
             try {
                 switch (response.code()) {
                     case 400:
@@ -1173,11 +1003,9 @@ public class RawCohere {
             } catch (JsonProcessingException ignored) {
                 // unable to map error response, throwing generic error
             }
+            Object errorBody = ObjectMappers.parseErrorBody(responseBodyString);
             throw new CohereApiException(
-                    "Error with status code " + response.code(),
-                    response.code(),
-                    ObjectMappers.JSON_MAPPER.readValue(responseBodyString, Object.class),
-                    response);
+                    "Error with status code " + response.code(), response.code(), errorBody, response);
         } catch (IOException e) {
             throw new CohereException("Network error executing HTTP request", e);
         }
@@ -1210,12 +1038,11 @@ public class RawCohere {
         }
         try (Response response = client.newCall(okhttpRequest).execute()) {
             ResponseBody responseBody = response.body();
+            String responseBodyString = responseBody != null ? responseBody.string() : "{}";
             if (response.isSuccessful()) {
                 return new CohereHttpResponse<>(
-                        ObjectMappers.JSON_MAPPER.readValue(responseBody.string(), CheckApiKeyResponse.class),
-                        response);
+                        ObjectMappers.JSON_MAPPER.readValue(responseBodyString, CheckApiKeyResponse.class), response);
             }
-            String responseBodyString = responseBody != null ? responseBody.string() : "{}";
             try {
                 switch (response.code()) {
                     case 400:
@@ -1258,11 +1085,9 @@ public class RawCohere {
             } catch (JsonProcessingException ignored) {
                 // unable to map error response, throwing generic error
             }
+            Object errorBody = ObjectMappers.parseErrorBody(responseBodyString);
             throw new CohereApiException(
-                    "Error with status code " + response.code(),
-                    response.code(),
-                    ObjectMappers.JSON_MAPPER.readValue(responseBodyString, Object.class),
-                    response);
+                    "Error with status code " + response.code(), response.code(), errorBody, response);
         } catch (IOException e) {
             throw new CohereException("Network error executing HTTP request", e);
         }
