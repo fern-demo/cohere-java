@@ -52,7 +52,8 @@ public class V2WireTest {
                         .setBody(
                                 "{\"id\":\"c14c80c3-18eb-4519-9460-6c92edd8cfb4\",\"message\":{\"role\":\"assistant\",\"content\":[{\"type\":\"text\",\"text\":\"LLMs stand for Large Language Models, which are a type of neural network model specialized in processing and generating human language. They are designed to understand and respond to natural language input and have become increasingly popular and valuable in recent years.\\n\\nLLMs are trained on vast amounts of text data, enabling them to learn patterns, grammar, and semantic meanings present in the language. These models can then be used for various natural language processing tasks, such as text generation, summarization, question answering, machine translation, sentiment analysis, and even some aspects of natural language understanding.\\n\\nSome well-known examples of LLMs include:\\n\\n1. GPT-3 (Generative Pre-trained Transformer 3) — An open-source LLM developed by OpenAI, capable of generating human-like text and performing various language tasks.\\n\\n2. BERT (Bidirectional Encoder Representations from Transformers) — A Google-developed LLM that is particularly good at understanding contextual relationships in text, and is widely used for natural language understanding tasks like sentiment analysis and named entity recognition.\\n\\n3. T5 (Text-to-Text Transfer Transformer) — Also from Google, T5 is a flexible LLM that frames all language tasks as text-to-text problems, where the model learns to generate output text based on input text prompts.\\n\\n4. RoBERTa (Robustly Optimized BERT Approach) — A variant of BERT that uses additional training techniques to improve performance.\\n\\n5. DeBERTa (Decoding-enhanced BERT with disentangled attention) — Another variant of BERT that introduces a new attention mechanism.\\n\\nLLMs have become increasingly powerful and larger in scale, improving the accuracy and sophistication of language tasks. They are also being used as a foundation for developing various applications, including chatbots, content recommendation systems, language translation services, and more.\\nThe future of LLMs holds the potential for even more sophisticated language technologies, with ongoing research and development focused on enhancing their capabilities, improving efficiency, and exploring their applications in various domains.\"}]},\"finish_reason\":\"COMPLETE\",\"usage\":{\"billed_units\":{\"input_tokens\":5,\"output_tokens\":418},\"tokens\":{\"input_tokens\":71,\"output_tokens\":418}}}"));
         V2ChatResponse response = client.v2()
-                .chatStream(V2ChatStreamRequest.builder().model("command-a-03-2025").stream(false)
+                .chatStream(V2ChatStreamRequest.builder()
+                        .model("command-a-03-2025")
                         .messages(Arrays.asList(ChatMessageV2.user(UserMessageV2.builder()
                                 .content(UserMessageV2Content.of("Tell me about LLMs"))
                                 .build())))
@@ -2335,8 +2336,8 @@ public class V2WireTest {
                                 "{\"id\":\"07734bd2-2473-4f07-94e1-0d9f0e6843cf\",\"results\":[{\"index\":3,\"relevance_score\":0.999071},{\"index\":4,\"relevance_score\":0.7867867},{\"index\":0,\"relevance_score\":0.32713068}],\"meta\":{\"api_version\":{\"version\":\"2\",\"is_experimental\":false},\"billed_units\":{\"search_units\":1}}}"));
         V2RerankResponse response = client.v2()
                 .rerank(V2RerankRequest.builder()
-                        .query("What is the capital of the United States?")
                         .model("rerank-v3.5")
+                        .query("What is the capital of the United States?")
                         .documents(
                                 Arrays.asList(
                                         "Carson City is the capital city of the American state of Nevada.",
